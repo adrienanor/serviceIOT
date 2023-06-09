@@ -2,8 +2,7 @@
 const express = require('express');
 const mqtt = require('mqtt');
 const mongoose = require('mongoose');
-//const axios = require('axios');
-const request = require('request');
+const axios = require('axios');
 
 
 // Configuration du service web
@@ -11,7 +10,6 @@ const app = express();
 const port = 80;
 const pools = {};
 const users = {};
-const thread_timeout = 30;
 
 // Configuration du broker MQTT
 const mqttBrokerUrl = 'mqtt://mqtt.eclipseprojects.io:1883'; // URL du broker MQTT
@@ -138,20 +136,18 @@ app.get('/open', (req, res) => {
 function performPoolRequest(pool_ip) {
     console.log(`Calling ${pool_ip}/pool`);
     const url = `http://${pool_ip}/pool`;
-    
-    request(url, (error, response, body) => {
-        if (error) {
-            // Gérer les erreurs ici
-            console.error('Request error:', error);
-        } else {
-            if (response.statusCode === 200) {
-                // Gérer la réponse ici si nécessaire
-                console.log('Request successful');
-            } else {
-                // Gérer les codes d'état non 200 ici si nécessaire
-                console.error('Request failed with status code:', response.statusCode);
-            }
-        }
+
+    app.get('/route', (req, res) => {
+        axios.get(url)
+            .then(response => {
+                // Traitez la réponse de l'ESP ici
+                res.send(response.data);
+            })
+            .catch(error => {
+                // Gérez les erreurs de requête ici
+                console.error(error);
+                res.status(500).send('Erreur lors de la requête vers l\'ESP');
+            });
     });
 }
 
