@@ -20,6 +20,7 @@ const TOPIC_GETCLIENT = "uca/waterbnb/21904810/a50";
 const mqttClient = mqtt.connect(mqttBrokerUrl);
 
 let collectionPiscineActivity;
+let numberClient = 0;
 
 mqttClient.on('connect', () => {
     console.log('Connecté au broker MQTT');
@@ -116,6 +117,9 @@ app.get('/open', (req, res) => {
                 performPoolRequest(poolIp);
                 let color = "Yellow";
                 publishClient(tid, lat, lon, color);
+                numberClient++;
+
+                saveInDB(idswp, users[idu]['date']);
 
                 setTimeout(() => {
                     performPoolRequest(poolIp);
@@ -136,19 +140,7 @@ app.get('/open', (req, res) => {
 function performPoolRequest(pool_ip) {
     console.log(`Calling ${pool_ip}/pool`);
     const url = `http://${pool_ip}/pool`;
-
-    app.get('/route', (req, res) => {
-        axios.get(url)
-            .then(response => {
-                // Traitez la réponse de l'ESP ici
-                res.send(response.data);
-            })
-            .catch(error => {
-                // Gérez les erreurs de requête ici
-                console.error(error);
-                res.status(500).send('Erreur lors de la requête vers l\'ESP');
-            });
-    });
+    axios.get(url);
 }
 
 
@@ -218,12 +210,14 @@ function parseMessageClient(message) {
         const lat = data['lat'];
         const lon = data['lon'];
         const color = data['iconColor'];
+        const date = data['created_at'];
 
         return {
             tid: tid,
             lat: lat,
             lon: lon,
             iconColor: color,
+            date: date,
         };
     } catch (error) {
         console.log(`Failed to parse message: ${message}`);
@@ -250,12 +244,45 @@ app.get('/', (req, res) => {
     //saveInDB(data)
 });
 
-function saveInDB(data) {
-    collectionPiscineActivity.insertOne(data)
-        .then((result) => {
-            console.log('Données sauvegardées avec succès:', result);
+function saveInDB(namePiscine, dateClient) {
+    console.log(namePiscine);
+    console.log(convertUnixTimestampWithTime(dateClient));
+
+    const activity = {
+        piscine: namePiscine,
+        date: convertUnixTimestampWithTime(dateClient),
+        clientPresent: numberClient
+    };
+
+    collectionPiscineActivity.insertOne(activity)
+        .then(() => {
+            console.log('Enregistrement ajouté dans la base de données');
         })
         .catch((error) => {
-            console.error('Erreur lors de la sauvegarde des données:', error);
+            console.error('Erreur lors de l\'ajout de l\'enregistrement dans la base de données', error);
         });
+}
+
+
+function convertUnixTimestampWithTime(timestamp) {
+    const date = new Date(timestamp * 1000); // Convert seconds to milliseconds
+
+    const day = date.getDate();
+    const month = date.getMonth() + 1; // Months are zero-based
+    const year = date.getFullYear();
+
+    // Pad single-digit day, month, hour, and minute with leading zeros
+    const formattedDay = String(day).padStart(2, '0');
+    const formattedMonth = String(month).padStart(2, '0');
+    const formattedYear = String(year);
+
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+
+    const formattedHours = String(hours).padStart(2, '0');
+    const formattedMinutes = String(minutes).padStart(2, '0');
+
+    const formattedDate = `${formattedDay}/${formattedMonth}/${formattedYear} ${formattedHours}:${formattedMinutes}`;
+
+    return formattedDate;
 }
