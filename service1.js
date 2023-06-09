@@ -109,7 +109,7 @@ app.get('/open', (req, res) => {
 
             console.log("distance : " + distance);
 
-            if (distance < 100) {
+            if (distance < 0.1) {
                 const poolIp = pools[idswp]['info']['ip'];
                 console.log(poolIp);
                 console.log(`Calling ${poolIp}/pool`);
@@ -136,9 +136,7 @@ app.get('/open', (req, res) => {
 function performPoolRequest(pool_ip) {
     console.log(`Calling ${pool_ip}/pool`);
     const url = `http://${pool_ip}/pool`;
-    axios.get(url)
-        .then((data) => console.log(data))
-        .catch((error) => console.error(error));
+    axios.get(url);
 }
 
 
@@ -207,11 +205,13 @@ function parseMessageClient(message) {
         const tid = data['tid'];
         const lat = data['lat'];
         const lon = data['lon'];
+        const color = data['iconColor'];
 
         return {
             tid: tid,
             lat: lat,
             lon: lon,
+            iconColor: color,
         };
     } catch (error) {
         console.log(`Failed to parse message: ${message}`);
