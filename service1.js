@@ -258,7 +258,7 @@ mongoose
 // Définition des routes
 app.get('/', (req, res) => {
     res.send('Bonjour, bienvenue sur le service web !');
-    saveInDB(data)
+    //saveInDB(data)
 });
 
 function saveInDB(data) {
