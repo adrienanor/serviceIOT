@@ -2,7 +2,9 @@
 const express = require('express');
 const mqtt = require('mqtt');
 const mongoose = require('mongoose');
-const axios = require('axios');
+//const axios = require('axios');
+const request = require('request');
+
 
 // Configuration du service web
 const app = express();
@@ -136,7 +138,21 @@ app.get('/open', (req, res) => {
 function performPoolRequest(pool_ip) {
     console.log(`Calling ${pool_ip}/pool`);
     const url = `http://${pool_ip}/pool`;
-    axios.get(url);
+    
+    request(url, (error, response, body) => {
+        if (error) {
+            // Gérer les erreurs ici
+            console.error('Request error:', error);
+        } else {
+            if (response.statusCode === 200) {
+                // Gérer la réponse ici si nécessaire
+                console.log('Request successful');
+            } else {
+                // Gérer les codes d'état non 200 ici si nécessaire
+                console.error('Request failed with status code:', response.statusCode);
+            }
+        }
+    });
 }
 
 
