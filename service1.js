@@ -232,29 +232,6 @@ function publishClient(tid, lat, lon, color) {
     console.log('Client data published:', message);
 }
 
-mongoose
-    .connect('mongodb+srv://WaterBnBAdmin:7OWqnjtNHADwsJXR@waterbnb.p8keb6e.mongodb.net/WaterBnB', {
-        useNewUrlParser: true,
-        useUnifiedTopology: true
-    })
-    .then(() => {
-        console.log('Connecté à la base de données MongoDB');
-
-        // Sélectionnez la base de données
-        const db = mongoose.connection.db;
-
-        // Accédez à la collection
-        collectionPiscineActivity = db.collection('piscineActivity');
-
-        // Démarrage du service web une fois connecté à la base de données
-        app.listen(port, () => {
-            console.log(`Le service web est en cours d'exécution sur le port ${port}`);
-        });
-    })
-    .catch((error) => {
-        console.error('Erreur lors de la connexion à la base de données MongoDB', error);
-    });
-
 // Définition des routes
 app.get('/', (req, res) => {
     res.send('Bonjour, bienvenue sur le service web !');
